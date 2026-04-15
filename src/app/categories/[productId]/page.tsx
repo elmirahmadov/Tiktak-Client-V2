@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { Suspense, useMemo, useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter, useParams } from "next/navigation";
 import { useCategoryActions, useCategoryList } from "@/common/store/category";
 import {
@@ -60,7 +60,7 @@ function formatPrice(value: string | number): string {
   return `${numeric.toFixed(2)} AZN`;
 }
 
-export default function ProductDetailPage() {
+function ProductDetailContent() {
   const router = useRouter();
   const params = useParams<{ productId?: string }>();
   const searchParams = useSearchParams();
@@ -527,5 +527,13 @@ export default function ProductDetailPage() {
         </section>
       </main>
     </div>
+  );
+}
+
+export default function ProductDetailPage() {
+  return (
+    <Suspense fallback={<div className={styles.pageShell} />}>
+      <ProductDetailContent />
+    </Suspense>
   );
 }

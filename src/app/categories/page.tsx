@@ -1,6 +1,13 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import {
+  Suspense,
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useCategoryActions, useCategoryList } from "@/common/store/category";
 import {
@@ -54,7 +61,7 @@ function formatPrice(value: string | number): string {
   return `${numeric.toFixed(2)} AZN`;
 }
 
-export default function CategoriesDetailsPage() {
+function CategoriesDetailsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryIdFromQuery = Number(searchParams.get("category") || "0");
@@ -558,5 +565,13 @@ export default function CategoriesDetailsPage() {
         </section>
       </main>
     </div>
+  );
+}
+
+export default function CategoriesDetailsPage() {
+  return (
+    <Suspense fallback={<div className={styles.pageShell} />}>
+      <CategoriesDetailsContent />
+    </Suspense>
   );
 }

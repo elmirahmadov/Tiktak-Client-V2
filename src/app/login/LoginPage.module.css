@@ -1,0 +1,287 @@
+.loginContainer {
+  display: flex;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.leftSection {
+  flex: 1;
+  background: #76cb4f;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  overflow: hidden;
+}
+
+.logoContainer {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.logo {
+  font-weight: 800;
+  font-size: 60px;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  color: #2b3043;
+}
+
+.imageContainer {
+  position: relative;
+  width: 150%;
+  height: 150%;
+  display: grid;
+  place-items: center;
+}
+
+.loginImage {
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+}
+
+.rightSection {
+  flex: 1;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.formContainer {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabContainer {
+  display: flex;
+  margin-bottom: 28px;
+  border-bottom: 1px solid #f0f0f0;
+  height: 50px;
+  align-items: center;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  background: transparent;
+  color: #333333;
+  font-size: 16px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  position: relative;
+  height: 100%;
+}
+
+.tab:hover {
+  color: #92d871;
+}
+
+.activeTab::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #92d871;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333333;
+}
+
+.input {
+  padding: 12px 16px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #f8f9fa;
+  transition: border-color 0.2s ease;
+  outline: none;
+  color: #333333;
+}
+
+.input:focus,
+.passwordInput:focus {
+  border-color: #92d871;
+}
+
+.input::placeholder,
+.passwordInput::placeholder {
+  color: #aaaaaa;
+  font-size: 14px;
+}
+
+.passwordContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordInput {
+  padding: 12px 46px 12px 16px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #f8f9fa;
+  outline: none;
+  width: 100%;
+  color: #333333;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999999;
+  padding: 4px;
+  line-height: 0;
+}
+
+.passwordToggle:hover {
+  color: #666666;
+}
+
+.submitButton {
+  background: #92d871;
+  color: #ffffff;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 4px;
+}
+
+.submitButton:hover {
+  background: #6ac96a;
+}
+
+.formError {
+  margin-top: -4px;
+  color: #d83f3f;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.submitButton:disabled,
+.tab:disabled,
+.switchLink:disabled,
+.passwordToggle:disabled,
+.input:disabled,
+.passwordInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.switchContainer {
+  margin-top: 12px;
+}
+
+.switchText {
+  font-size: 14px;
+  color: #666666;
+}
+
+.switchLink {
+  background: none;
+  border: none;
+  color: #92d871;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.switchLink:hover {
+  color: #6ac96a;
+  text-decoration: underline;
+}
+
+@media (max-width: 968px) {
+  .loginContainer {
+    flex-direction: column;
+  }
+
+  .leftSection {
+    min-height: 300px;
+    flex: none;
+  }
+
+  .logoContainer {
+    position: static;
+    margin-bottom: 20px;
+  }
+
+  .logo {
+    font-size: 32px;
+  }
+
+  .rightSection {
+    padding: 32px 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .leftSection {
+    min-height: 240px;
+    padding: 20px;
+  }
+
+  .logo {
+    font-size: 26px;
+  }
+
+  .formContainer {
+    max-width: 100%;
+  }
+
+  .rightSection {
+    padding: 24px 16px;
+  }
+
+  .form {
+    gap: 20px;
+  }
+
+  .input,
+  .passwordInput {
+    padding: 14px 16px;
+  }
+
+  .passwordInput {
+    padding-right: 46px;
+  }
+
+  .submitButton {
+    padding: 16px;
+  }
+}

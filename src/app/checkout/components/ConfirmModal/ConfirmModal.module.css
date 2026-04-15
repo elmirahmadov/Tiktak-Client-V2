@@ -1,0 +1,142 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 24, 38, 0.32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 120;
+}
+
+.confirmModal {
+  width: min(100%, 430px);
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 28px 60px rgba(15, 20, 37, 0.16);
+  padding: 28px 34px 30px;
+  text-align: center;
+}
+
+.clockWrap {
+  position: relative;
+  width: 146px;
+  height: 118px;
+  margin: 0 auto 18px;
+}
+
+.clockGlow {
+  position: absolute;
+  width: 106px;
+  height: 68px;
+  border-radius: 999px;
+  background: #edf8e9;
+  left: 20px;
+  top: 28px;
+}
+
+.clockFace {
+  position: absolute;
+  top: 8px;
+  left: 36px;
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 7px solid #8bd766;
+}
+
+.clockHand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 2.5px;
+  border-radius: 999px;
+  background: #5b6173;
+  transform-origin: left center;
+}
+
+.clockHandHour {
+  width: 20px;
+  transform: translateY(-50%) rotate(215deg);
+}
+
+.clockHandMinute {
+  width: 29px;
+  transform: translateY(-50%) rotate(0deg);
+}
+
+.clockCenter {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5b6173;
+  transform: translate(-50%, -50%);
+}
+
+.clockLeafOne,
+.clockLeafTwo {
+  position: absolute;
+  border-radius: 999px;
+  background: #7fd45c;
+}
+
+.clockLeafOne {
+  width: 16px;
+  height: 5px;
+  left: 16px;
+  top: 35px;
+  transform: rotate(46deg);
+}
+
+.clockLeafTwo {
+  width: 13px;
+  height: 5px;
+  left: 24px;
+  top: 27px;
+  transform: rotate(-18deg);
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 23px;
+  line-height: 1.2;
+  color: #26344d;
+  font-weight: 700;
+}
+
+.modalText {
+  margin: 7px 0 24px;
+  font-size: 14px;
+  color: #717789;
+}
+
+.modalActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.confirmBtn,
+.laterBtn {
+  height: 42px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirmBtn {
+  border: 0;
+  background: #8fdb68;
+  color: #ffffff;
+}
+
+.laterBtn {
+  border: 1px solid #e2e6ef;
+  background: #ffffff;
+  color: #c2c6cf;
+}

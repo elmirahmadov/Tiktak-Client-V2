@@ -1,0 +1,138 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.blockTitle {
+  display: block;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2e3a50;
+}
+
+.paymentOptions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.paymentOption {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #e4e7ef;
+  border-radius: 6px;
+  min-height: 50px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #4a5264;
+  background: #ffffff;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.paymentOption input {
+  display: none;
+}
+
+.paymentContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.paymentIconWrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #626b7f;
+  background: #f6f7fb;
+  flex-shrink: 0;
+}
+
+.paymentIconCash {
+  color: #34b366;
+  background: #eaf8ef;
+}
+
+.paymentIcon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.9;
+}
+
+.paymentLabel {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.paymentDot {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #c7ccd8;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  flex-shrink: 0;
+  background: #ffffff;
+}
+
+.active {
+  border-color: #b9e7c8;
+  background: #effbf3;
+  color: #2e9f5a;
+}
+
+.active .paymentDot {
+  border-color: #37b768;
+}
+
+.active .paymentDot::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #27b25b;
+}
+
+.active .paymentLabel {
+  color: #2eab5f;
+}
+
+.completeBtn {
+  width: 100%;
+  max-width: 280px;
+  height: 40px;
+  border: 0;
+  border-radius: 7px;
+  background: #1f2a44;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: block;
+  margin: 8px auto 0;
+}
+
+.completeBtn:hover {
+  filter: brightness(1.04);
+}
+
+@media (max-width: 760px) {
+  .paymentOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .completeBtn {
+    max-width: 100%;
+  }
+}

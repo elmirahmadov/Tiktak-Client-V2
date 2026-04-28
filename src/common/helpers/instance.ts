@@ -10,6 +10,14 @@ import {
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 const REFRESH_ENDPOINT = "/api/tiktak/auth/refresh";
 
+const getBaseUrl = (): string => {
+  if (typeof window !== "undefined") {
+    return "";
+  }
+
+  return BASE_URL.replace(/\/$/, "");
+};
+
 const getAccessToken = (): string | null => {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("access_token");
@@ -33,7 +41,7 @@ const clearTokens = (): void => {
 };
 
 const refreshAccessToken = async (refreshToken: string) => {
-  const response = await fetch(combineUrls(BASE_URL, REFRESH_ENDPOINT), {
+  const response = await fetch(combineUrls(getBaseUrl(), REFRESH_ENDPOINT), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -70,11 +78,11 @@ const refreshAccessToken = async (refreshToken: string) => {
 };
 
 const Fetcher = async <T = unknown>(
-  config: RequestConfig
+  config: RequestConfig,
 ): Promise<NetworkResponse<T>> => {
   const { method, url, data, params, headers = {} } = config;
 
-  const fullUrl = url.startsWith("http") ? url : combineUrls(BASE_URL, url);
+  const fullUrl = url.startsWith("http") ? url : combineUrls(getBaseUrl(), url);
   const queryString = params ? buildQueryString(params) : "";
   const requestUrl = `${fullUrl}${queryString}`;
 
@@ -102,8 +110,7 @@ const Fetcher = async <T = unknown>(
 
   if (!response.ok) {
     const error = {
-      message:
-        responseData?.message || responseData?.error || "Request failed",
+      message: responseData?.message || responseData?.error || "Request failed",
       status: response.status,
       response: {
         data: responseData,

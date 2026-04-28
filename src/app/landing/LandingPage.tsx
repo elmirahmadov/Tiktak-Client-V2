@@ -157,7 +157,8 @@ export function LandingPage() {
 
   useEffect(() => {
     getAllCampaigns().finally(() => setHasFetched(true));
-  }, [getAllCampaigns]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const apiHeroCards: HeroViewCard[] = campaigns.map((campaign, index) => ({
     title: campaign.title,

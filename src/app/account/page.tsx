@@ -1,45 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import {
-  FiUser,
-  FiPackage,
-  FiHeart,
-  FiShoppingCart,
-  FiMapPin,
-} from "react-icons/fi";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AppHeader } from "@/common/components/AppHeader";
+import { AccountForm } from "./components/AccountForm";
+import OrderDetails from "./components/OrderDetails";
+import OrdersTable from "./components/OrdersTable";
+import Sidebar from "./components/Sidebar";
 import type { IProfileUpdateRequest } from "@/common/types/api.types";
 import { getProfile, updateProfile } from "@/services/api/profile.api";
 import styles from "./page.module.css";
 
-const topNavItems = [
-  {
-    label: "Hesabım",
-    node: <FiUser className={styles.iconSvg} aria-hidden="true" />,
-    href: "/account",
-  },
-  {
-    label: "Siyahılarım",
-    node: <FiHeart className={styles.iconSvg} aria-hidden="true" />,
-    href: "/favourites",
-  },
-  {
-    label: "Səbətim",
-    node: <FiShoppingCart className={styles.iconSvg} aria-hidden="true" />,
-    href: "/basket",
-  },
-];
-
-const navItems = [
-  { label: "Hesab məlumatlarım", icon: <FiUser />, href: "/account" },
-  { label: "Sifarişlərim", icon: <FiPackage />, href: "/account/orders" },
-];
-
-export default function AccountPage() {
+export default function Page() {
   const router = useRouter();
-  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -48,10 +22,40 @@ export default function AccountPage() {
     password: "",
     confirmPassword: "",
   });
+  const [initialProfileData, setInitialProfileData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    position: "",
+  });
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState<"success" | "error">("success");
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [section, setSection] = useState<"account" | "orders" | "details">(
+    "account",
+  );
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const urlSection = searchParams.get("section");
+    const urlOrderId = searchParams.get("orderId");
+
+    if (urlSection === "details" && urlOrderId) {
+      setSection("details");
+      setSelectedOrderId(urlOrderId);
+      return;
+    }
+
+    if (urlSection === "orders") {
+      setSection("orders");
+      setSelectedOrderId(null);
+      return;
+    }
+
+    setSection("account");
+    setSelectedOrderId(null);
+  }, [searchParams]);
 
   useEffect(() => {
     let isMounted = true;
@@ -72,6 +76,13 @@ export default function AccountPage() {
           phone: profile.phone || "",
           position: profile.address || "",
         }));
+
+        setInitialProfileData({
+          name: profile.full_name || "",
+          email: profile.email || "",
+          phone: profile.phone || "",
+          position: profile.address || "",
+        });
       } catch {
         if (!isMounted) {
           return;
@@ -92,7 +103,7 @@ export default function AccountPage() {
     };
   }, []);
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setStatusMessage("");
   };
@@ -100,22 +111,71 @@ export default function AccountPage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (formData.password && formData.password !== formData.confirmPassword) {
+    const password = formData.password.trim();
+    const confirmPassword = formData.confirmPassword.trim();
+
+    if (Boolean(password) !== Boolean(confirmPassword)) {
+      setStatusType("error");
+      setStatusMessage("Şifrəni hər iki xanaya daxil edin.");
+      return;
+    }
+
+    if (password && password !== confirmPassword) {
       setStatusType("error");
       setStatusMessage("Yeni şifrə təkrarı uyğun deyil.");
       return;
     }
 
+    const nextName = formData.name.trim();
+    const nextPhone = formData.phone.trim();
+    const nextAddress = formData.position.trim();
+    const nextEmail = formData.email.trim();
+
+    if (!nextName) {
+      setStatusType("error");
+      setStatusMessage("Ad sahəsi boş ola bilməz.");
+      return;
+    }
+
+    if (!nextAddress) {
+      setStatusType("error");
+      setStatusMessage("Ünvan sahəsi boş ola bilməz.");
+      return;
+    }
+
+    if (!nextPhone) {
+      setStatusType("error");
+      setStatusMessage("Telefon nömrəsi boş ola bilməz.");
+      return;
+    }
+
+    const hasProfileChanges =
+      nextName !== initialProfileData.name.trim() ||
+      nextPhone !== initialProfileData.phone.trim() ||
+      nextAddress !== initialProfileData.position.trim() ||
+      nextEmail !== initialProfileData.email.trim();
+
+    const hasPasswordChange = Boolean(password && confirmPassword);
+
+    if (!hasProfileChanges && !hasPasswordChange) {
+      setStatusType("success");
+      setStatusMessage("Dəyişiklik edilməyib.");
+      return;
+    }
+
     const payload: IProfileUpdateRequest = {
-      full_name: formData.name.trim(),
-      phone: formData.phone.trim(),
-      address: formData.position.trim(),
-      email: formData.email.trim() || undefined,
+      full_name: nextName,
+      phone: nextPhone,
+      address: nextAddress,
     };
 
-    if (formData.password.trim()) {
-      payload.password = formData.password;
-      payload.password_repeat = formData.confirmPassword;
+    if (nextEmail && nextEmail !== initialProfileData.email.trim()) {
+      payload.email = nextEmail;
+    }
+
+    if (password && confirmPassword) {
+      payload.password = password;
+      payload.password_repeat = confirmPassword;
     }
 
     setIsSubmitting(true);
@@ -132,223 +192,111 @@ export default function AccountPage() {
         confirmPassword: "",
       }));
 
+      setInitialProfileData((prev) => ({
+        name: updatedProfile?.full_name || formData.name.trim() || prev.name,
+        email: updatedProfile?.email || formData.email.trim() || prev.email,
+        phone: updatedProfile?.phone || formData.phone.trim() || prev.phone,
+        position:
+          updatedProfile?.address || formData.position.trim() || prev.position,
+      }));
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("tiktak:profile-updated", {
+            detail: {
+              address: updatedProfile?.address || formData.position.trim(),
+            },
+          }),
+        );
+      }
+
       setStatusType("success");
       setStatusMessage("Məlumatlarınız uğurla yeniləndi.");
-    } catch {
+    } catch (error) {
+      const rawMessage =
+        typeof error === "object" && error !== null && "response" in error
+          ? (
+              error as {
+                response?: {
+                  data?: {
+                    message?: string | string[];
+                    error?: string;
+                  };
+                };
+              }
+            )?.response?.data?.message ||
+            (
+              error as {
+                response?: {
+                  data?: {
+                    message?: string | string[];
+                    error?: string;
+                  };
+                };
+              }
+            )?.response?.data?.error
+          : undefined;
+
+      const normalizedMessage = Array.isArray(rawMessage)
+        ? rawMessage.join(", ")
+        : rawMessage || "Məlumatlar yenilənmədi. Yenidən cəhd edin.";
+
       setStatusType("error");
-      setStatusMessage("Məlumatlar yenilənmədi. Yenidən cəhd edin.");
+      setStatusMessage(normalizedMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleSidebarSelect = (nextSection: "account" | "orders") => {
+    setSection(nextSection);
+    setSelectedOrderId(null);
+    router.push(
+      nextSection === "account" ? "/account" : "/account?section=orders",
+    );
+  };
+
+  const handleViewDetails = (orderId: string) => {
+    setSelectedOrderId(orderId);
+    setSection("details");
+    router.push(
+      `/account?section=details&orderId=${encodeURIComponent(orderId)}`,
+    );
+  };
+
+  const effectiveSection = section === "details" ? "orders" : section;
+
   return (
     <div className={styles.accountPage}>
-      <header className={styles.navBand}>
-        <div className={styles.topNav}>
-          <div className={styles.navLeft}>
-            <strong className={styles.brand}>TIK TAK</strong>
-            <div className={styles.locationBox}>
-              <div className={styles.locationIcon}>
-                <FiMapPin size={16} />
-              </div>
-              <div className={styles.locationMeta}>
-                <div className={styles.locationTitle}>Unvan</div>
-                <div className={styles.locationAddress}>
-                  Adres qeyd olunmayıb
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.searchShell}>
-            <input
-              type="text"
-              className={styles.searchField}
-              placeholder="Axtarış"
-              aria-label="Axtarış"
-            />
-          </div>
-
-          <nav
-            className={styles.navActions}
-            aria-label="Account page navigation"
-          >
-            {topNavItems.map((item) => (
-              <Link key={item.label} href={item.href} className={styles.navBtn}>
-                {item.node}
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </nav>
-        </div>
-      </header>
+      <AppHeader
+        activeHref="/account"
+        ariaLabel="Account page navigation"
+        searchPlaceholder="Axtarış"
+      />
 
       <div className={styles.pageBody}>
-        <aside className={styles.sidebar}>
-          <h1 className={styles.sidebarTitle}>Hesabım</h1>
-          <nav className={styles.navList} aria-label="Hesab menyusu">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <button
-                  key={item.label}
-                  type="button"
-                  className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
-                  onClick={() => item.href && router.push(item.href)}
-                >
-                  <span className={styles.navIcon}>{item.icon}</span>
-                  <span className={styles.navItemLabel}>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </aside>
+        <Sidebar onSelect={handleSidebarSelect} selected={effectiveSection} />
 
         <main className={styles.contentArea}>
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div>
-                {/* <p className={styles.sectionTag}>Ödəniş məlumatları</p> */}
-                <h2 className={styles.cardTitle}>Əlaqə məlumatlarınız</h2>
-              </div>
-            </div>
+          {section === "account" ? (
+            <AccountForm
+              formData={formData}
+              isLoadingProfile={isLoadingProfile}
+              isSubmitting={isSubmitting}
+              onChange={handleChange}
+              onSubmit={handleSubmit}
+              statusMessage={statusMessage}
+              statusType={statusType}
+            />
+          ) : null}
 
-            <form className={styles.formGrid} onSubmit={handleSubmit}>
-              {isLoadingProfile ? (
-                <p className={styles.statusMessage}>
-                  Profil məlumatları yüklənir...
-                </p>
-              ) : null}
+          {section === "orders" ? (
+            <OrdersTable onViewDetails={handleViewDetails} />
+          ) : null}
 
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel} htmlFor="name">
-                  Adınız
-                </label>
-                <input
-                  id="name"
-                  type="text"
-                  className={styles.fieldInput}
-                  value={formData.name}
-                  onChange={(event) => handleChange("name", event.target.value)}
-                  placeholder="Adınız"
-                  disabled={isLoadingProfile || isSubmitting}
-                />
-              </div>
-
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel} htmlFor="phone">
-                  Telefon nömrəsi
-                </label>
-                <input
-                  id="phone"
-                  type="text"
-                  className={styles.fieldInput}
-                  value={formData.phone}
-                  onChange={(event) =>
-                    handleChange("phone", event.target.value)
-                  }
-                  placeholder="(+994) 50 123 45 67"
-                  disabled={isLoadingProfile || isSubmitting}
-                />
-              </div>
-
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel} htmlFor="email">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  className={styles.fieldInput}
-                  value={formData.email}
-                  onChange={(event) =>
-                    handleChange("email", event.target.value)
-                  }
-                  placeholder="Email"
-                  disabled={isLoadingProfile || isSubmitting}
-                />
-              </div>
-
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel} htmlFor="position">
-                  Ünvan
-                </label>
-                <input
-                  id="position"
-                  type="text"
-                  className={styles.fieldInput}
-                  value={formData.position}
-                  onChange={(event) =>
-                    handleChange("position", event.target.value)
-                  }
-                  placeholder="Ünvan"
-                  disabled={isLoadingProfile || isSubmitting}
-                />
-              </div>
-
-              <div className={styles.sectionDivider}>
-                <div>
-                  <span>Şifrənizin yenilənməsi</span>
-                  <p className={styles.sectionDescription}>
-                    Ehtiyac yoxdursa boş buraxın
-                  </p>
-                </div>
-              </div>
-
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel} htmlFor="password">
-                  Yeni Şifrə
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  className={styles.fieldInput}
-                  value={formData.password}
-                  onChange={(event) =>
-                    handleChange("password", event.target.value)
-                  }
-                  placeholder="Yeni şifrə"
-                  disabled={isLoadingProfile || isSubmitting}
-                />
-              </div>
-
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel} htmlFor="confirmPassword">
-                  Yeni Şifrənin təkrarı
-                </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  className={styles.fieldInput}
-                  value={formData.confirmPassword}
-                  onChange={(event) =>
-                    handleChange("confirmPassword", event.target.value)
-                  }
-                  placeholder="Şifrəni təkrarlayın"
-                  disabled={isLoadingProfile || isSubmitting}
-                />
-              </div>
-
-              {statusMessage ? (
-                <p
-                  className={`${styles.statusMessage} ${
-                    statusType === "error" ? styles.statusError : ""
-                  }`}
-                >
-                  {statusMessage}
-                </p>
-              ) : null}
-
-              <button
-                type="submit"
-                className={styles.submitButton}
-                disabled={isLoadingProfile || isSubmitting}
-              >
-                {isSubmitting ? "Yenilənir..." : "Melumatlari yenile"}
-              </button>
-            </form>
-          </section>
+          {section === "details" && selectedOrderId ? (
+            <OrderDetails orderId={selectedOrderId} />
+          ) : null}
         </main>
       </div>
     </div>

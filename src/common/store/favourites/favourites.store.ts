@@ -1,5 +1,7 @@
+"use client";
+
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { IProduct } from "@/common/types/api.types";
 
 interface IFavouritesStore {
@@ -16,19 +18,23 @@ export const useFavouritesStore = create<IFavouritesStore>()(
 
       addFavourite: (product) =>
         set((state) => {
-          if (state.items.some((p) => p.id === product.id)) return state;
+          if (state.items.some((p) => String(p.id) === String(product.id))) {
+            return state;
+          }
+
           return { items: [...state.items, product] };
         }),
 
       removeFavourite: (id) =>
         set((state) => ({
-          items: state.items.filter((p) => p.id !== id),
+          items: state.items.filter((p) => String(p.id) !== String(id)),
         })),
 
-      isFavourite: (id) => get().items.some((p) => p.id === id),
+      isFavourite: (id) => get().items.some((p) => String(p.id) === String(id)),
     }),
     {
       name: "tiktak-favourites",
+      storage: createJSONStorage(() => localStorage),
     },
   ),
 );

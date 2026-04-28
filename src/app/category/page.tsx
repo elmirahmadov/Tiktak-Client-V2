@@ -6,103 +6,57 @@ import {
   useCategoryList,
   useCategoryLoading,
 } from "@/common/store/category";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { AppHeader } from "@/common/components/AppHeader";
+import { CategorySearchField } from "@/common/components/CategorySearchField";
+import { useCategorySearch } from "@/common/hooks/useCategorySearch";
+import { useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FiHeart, FiMapPin, FiShoppingCart, FiUser } from "react-icons/fi";
 import CategoryGrid from "./components/CategoryGrid";
 import PromoBanner from "./components/PromoBanner";
-import styles from "./CategoryPage.module.css";
-
-const navIcons = [
-  {
-    label: "Hesabım",
-    node: <FiUser className={styles.iconSvg} aria-hidden="true" />,
-    href: "/account",
-  },
-  {
-    label: "Siyahılarım",
-    node: <FiHeart className={styles.iconSvg} aria-hidden="true" />,
-    href: "/favourites",
-  },
-  {
-    label: "Səbətim",
-    node: <FiShoppingCart className={styles.iconSvg} aria-hidden="true" />,
-    href: "/basket",
-  },
-];
+import styles from "./page.module.css";
 
 const CategoryPage = () => {
   const router = useRouter();
   const categories = useCategoryList();
   const loading = useCategoryLoading();
   const error = useCategoryError();
-  const { fetchCategories } = useCategoryActions();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showResults, setShowResults] = useState(false);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const { fetchCategories: storeFetchCategories } = useCategoryActions();
+  const fetchCategories = useCallback(() => {
+    try {
+      return storeFetchCategories();
+    } catch (err) {
+      console.error("Error in fetchCategories:", err);
+      throw err;
+    }
+  }, [storeFetchCategories]);
 
+  // Safety check to ensure we have valid data
   useEffect(() => {
-    fetchCategories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
+    if (!Array.isArray(categories)) {
+      console.warn("Categories is not an array:", categories);
     }
-
-    const waitMs = searchQuery.trim() === "" ? 500 : 1200;
-
-    searchTimeoutRef.current = setTimeout(() => {
-      // Same approach as tiktak-web: delayed API fetch, not per key stroke.
-      fetchCategories();
-    }, waitMs);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, [searchQuery, fetchCategories]);
-
-  const normalizedQuery = searchQuery.trim().toLowerCase();
-
-  const filteredCategories = useMemo(() => {
-    if (!normalizedQuery) return categories;
-    return categories.filter((item) =>
-      item.name.toLowerCase().includes(normalizedQuery),
-    );
-  }, [categories, normalizedQuery]);
-
-  const suggestionList = useMemo(() => {
-    if (!normalizedQuery) return [];
-    return filteredCategories.slice(0, 6);
-  }, [filteredCategories, normalizedQuery]);
-
-  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setShowResults(false);
-    setIsSearchFocused(false);
-    if (searchInputRef.current) {
-      searchInputRef.current.blur();
-    }
-  };
-
-  const handleSuggestionClick = (categoryId: number) => {
-    setShowResults(false);
-    setIsSearchFocused(false);
-    router.push(`/categories?category=${categoryId}`);
-  };
-
-  const handleOverlayClick = () => {
-    setShowResults(false);
-    setIsSearchFocused(false);
-    if (searchInputRef.current) {
-      searchInputRef.current.blur();
-    }
-  };
+  }, [categories]);
+  const {
+    filteredCategories,
+    handleBlur,
+    handleFocus,
+    handleOverlayClick,
+    handleSearchSubmit,
+    handleSuggestionClick,
+    isSearchFocused,
+    normalizedQuery,
+    searchInputRef,
+    searchQuery,
+    setSearchQuery,
+    showResults,
+    suggestionList,
+  } = useCategorySearch({
+    categories,
+    fetchCategories,
+    onSuggestionSelect: (categoryId) => {
+      router.push(`/categories?category=${categoryId}`);
+    },
+  });
 
   const renderContent = () => {
     if (loading) {
@@ -114,7 +68,7 @@ const CategoryPage = () => {
           <div className={styles.statusMsg} style={{ color: "#d9534f" }}>
             {error}
           </div>
-          {error.toLowerCase().includes("giris") && (
+          {error && error.toLowerCase().includes("giris") && (
             <button
               type="button"
               className={styles.loginBtn}
@@ -147,91 +101,33 @@ const CategoryPage = () => {
         <div className={styles.overlay} onClick={handleOverlayClick} />
       )}
 
-      <header className={styles.navBand}>
-        <div
-          className={`${styles.topNav} ${isSearchFocused ? styles.topNavFocused : ""}`}
-        >
-          <div className={styles.navLeft}>
-            <strong className={styles.brand}>TIK TAK</strong>
-
-            <div className={styles.locationBox}>
-              <div className={styles.locationIcon}>
-                <FiMapPin size={16} />
-              </div>
-              <div className={styles.locationMeta}>
-                <div className={styles.locationTitle}>Unvan</div>
-                <div className={styles.locationAddress}>
-                  Adres qeyd olunmayıb
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className={`${styles.searchShell} ${
-              isSearchFocused ? styles.searchShellFocused : ""
-            }`}
-          >
-            <form onSubmit={handleSearchSubmit}>
-              <input
-                type="text"
-                className={styles.searchField}
-                placeholder="Axtarış"
-                aria-label="Axtarış"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => {
-                  setShowResults(true);
-                  setIsSearchFocused(true);
-                }}
-                onBlur={() => {
-                  setTimeout(() => {
-                    setShowResults(false);
-                    setIsSearchFocused(false);
-                  }, 120);
-                }}
-                ref={searchInputRef}
-              />
-            </form>
-
-            {showResults && normalizedQuery && (
-              <div className={styles.searchResults}>
-                {suggestionList.length > 0 ? (
-                  suggestionList.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      className={styles.searchResultItem}
-                      onClick={() => handleSuggestionClick(cat.id)}
-                    >
-                      {cat.name}
-                    </button>
-                  ))
-                ) : (
-                  <div className={styles.searchNoResult}>Nəticə yoxdur</div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <nav
-            className={styles.navActions}
-            aria-label="Category page navigation"
-          >
-            {navIcons.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                className={styles.navBtn}
-                onClick={() => item.href && router.push(item.href)}
-              >
-                {item.node}
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-      </header>
+      <AppHeader
+        ariaLabel="Category page navigation"
+        topNavClassName={isSearchFocused ? styles.topNavFocused : undefined}
+        searchClassName={
+          isSearchFocused ? styles.searchShellFocused : styles.searchShell
+        }
+        searchContent={
+          <CategorySearchField
+            classNames={{
+              input: styles.searchField,
+              noResult: styles.searchNoResult,
+              resultItem: styles.searchResultItem,
+              results: styles.searchResults,
+            }}
+            inputRef={searchInputRef}
+            normalizedQuery={normalizedQuery}
+            onBlur={handleBlur}
+            onChange={setSearchQuery}
+            onFocus={handleFocus}
+            onSubmit={handleSearchSubmit}
+            onSuggestionClick={handleSuggestionClick}
+            query={searchQuery}
+            showResults={showResults}
+            suggestions={suggestionList}
+          />
+        }
+      />
 
       <div className={styles.shellFrame}>
         <main className={styles.pageRoot}>

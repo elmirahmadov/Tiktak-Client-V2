@@ -33,7 +33,8 @@ const initialBase = {
 
 const parseErrorMessage = (error: unknown): string => {
   const err = error as ErrorResponse;
-  const message = err?.response?.data?.message || err?.response?.data?.error || err?.message;
+  const message =
+    err?.response?.data?.message || err?.response?.data?.error || err?.message;
 
   if (!message) return "Bilinməyən xəta";
   return Array.isArray(message) ? message.join(", ") : message;
@@ -110,6 +111,8 @@ export const useAuthStore = create<IAuthStore>((set) => ({
         if (typeof window !== "undefined") {
           localStorage.setItem("access_token", parsed.accessToken);
           localStorage.setItem("refresh_token", parsed.refreshToken);
+          localStorage.setItem("last_login_phone", data.phone);
+          localStorage.setItem("last_login_password", data.password);
         }
 
         set({

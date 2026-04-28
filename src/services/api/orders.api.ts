@@ -283,11 +283,58 @@ export const getOrderDetail = async (
 };
 
 export const checkout = async (data: ICheckoutRequest): Promise<unknown> => {
-  const response = await Fetcher<unknown>({
-    method: REQUEST_METHODS.POST,
-    url: API.order.checkout,
-    data,
-  });
+  const checkoutUrls = [
+    "/api/tiktak/orders/checkout",
+    API.order.checkout,
+    "/api/tiktak/order/checkout",
+  ];
 
-  return response.data;
+  const paymentUpper = String(data.paymentMethod || "").toUpperCase();
+  const requestVariants: Array<Record<string, unknown>> = [
+    {
+      paymentMethod: data.paymentMethod,
+      address: data.address,
+      phone: data.phone,
+      note: data.note || "",
+    },
+    {
+      payment_method: data.paymentMethod,
+      address: data.address,
+      phone: data.phone,
+      note: data.note || "",
+    },
+    {
+      paymentMethod: paymentUpper,
+      address: data.address,
+      phone: data.phone,
+      note: data.note || "",
+    },
+    {
+      payment_method: paymentUpper,
+      address: data.address,
+      phone: data.phone,
+      note: data.note || "",
+      phone_number: data.phone,
+    },
+  ];
+
+  let lastError: unknown = null;
+
+  for (const url of checkoutUrls) {
+    for (const body of requestVariants) {
+      try {
+        const response = await Fetcher<unknown>({
+          method: REQUEST_METHODS.POST,
+          url,
+          data: body,
+        });
+
+        return response.data;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+  }
+
+  throw lastError;
 };
